@@ -16,6 +16,7 @@
 #include "std_msgs/msg/int32.hpp"
 #include "/home/dragon/ros2_ws/install/can_msg/include/can_msg/can_msg/msg/frame.hpp"
 
+#include <unordered_map>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -23,11 +24,19 @@ using std::placeholders::_3;
 
 CanToRos::CanToRos() : Node("can_to_ros_node") {
 
+  can_id_mapping = {
+    {0x100, {"int_pub", std_msgs::msg::Int32::type()}},
+    {0x200, {"float_pub", std_msgs::msg::Float64::type()}}
+};
+
   topicname_receive 	<< "CAN/" << "can0" << "/" << "receive";
   topicname_transmit 	<< "CAN/" << "can0" << "/" << "transmit";
 
-  publisher_ = this->create_publisher<std_msgs::msg::Int32>("pub_name", 10);
+  publisher_int = this->create_publisher<std_msgs::msg::Int32>("int_pub", 10);
+  publisher_float = this->create_publisher<std_msgs::msg::FLoat32>("float_pub", 10);
+
   subscriber_ = this->create_subscription<can_msg::msg::Frame>(topicname_transmit.str(), rclcpp::QoS(10), std::bind(&CanToRos::CanPublisher, this, _1));
+ 
   // Socket creating and binding to Can interface
   socket_zero = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   struct sockaddr_can addr; //socket address
@@ -48,8 +57,6 @@ CanToRos::CanToRos() : Node("can_to_ros_node") {
   addr.can_ifindex = ifr.ifr_ifindex;
   bind(socket_one, (struct sockaddr *)&addr, sizeof(addr));
 
-  std::cout << "ROS2 to CAN-Bus topic:" << subscriber_->get_topic_name() 	<< std::endl;
-  std::cout << "CAN-Bus to ROS2 topic:" << publisher_->get_topic_name() 	<< std::endl;
 
   // Set up the CAN frame handling in a separate thread
   std::thread thread(&CanToRos::readCanFrame, this);
@@ -66,17 +73,11 @@ void CanToRos::readCanFrame() {
         int nbytes_one = sizeof(buffer_one);
 
         if (nbytes_zero > 0) {
-            // Extract relevant data from frame_zero and publish
-            std_msgs::msg::Int32 test_msg;
-            test_msg.data = static_cast<int32_t>(frame_zero.can_id);  // Example: Assuming can_id is of type int32_t
-            publisher_->publish(test_msg);
+           translateRosMsg(&buffer_zero, nbytes_zero);
         }
 
         if (nbytes_one > 0) {
-            // Extract relevant data from frame_one and publish
-            std_msgs::msg::Int32 test_msg2;
-            test_msg2.data = static_cast<int32_t>(frame_one.can_id);  // Example: Assuming can_id is of type int32_t
-            publisher_->publish(test_msg2);
+          translateRosMsg(&buffer_one, nbytes_one);
         }
     }
 
@@ -101,9 +102,30 @@ void CanToRos::CanPublisher(const can_msg::msg::Frame::SharedPtr msg)
               id, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 }
 
+template <typename MsgType>
+void CanToRos::translateRosMsg(const struct can_frame& frame) {
+    auto mapping_iter = can_id_mapping.find(frame.can_id);
+    if (mapping_iter != can_id_mapping.end()) {
+        const auto& mapping = mapping_iter->second;
 
-void CanToRos::translateRosMsg(){
+        // Find the publisher associated with the topic
+        auto publisher_iter = topic_publishers.find(mapping.first);
+        if (publisher_iter != topic_publishers.end()) {
+            // Create a message of the determined type and publish
+            auto msg = std::make_shared<MsgType>();
+            // Populate the message data based on the CAN frame
+            // For example:
+            msg->data = frame.data;
+            // Add more data as needed
+
+            publisher_iter->second->publish(msg);
+        } else {
+            // Handle the case where the publisher for the topic is not found
+            RCLCPP_ERROR(get_logger(), "Publisher for topic '%s' not found", mapping.first.c_str());
+        }
+    }
 }
+
 
 //void CanToRos::topic_callback(const std_msgs::msg::Int32::SharedPtr msg) const
 //   {

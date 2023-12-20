@@ -3,8 +3,8 @@ import random
 import time
 
 def generate_random_can_message():
-    can_id = random.randint(0, 0x7FF)
-    data = [random.randint(0, 0xFF) for _ in range(8)]
+    can_id = random.randint(100)
+    data = 6969
     return can.Message(arbitration_id=can_id, data=data, is_extended_id=False)
 
 def publish_random_can_message(bus, interval=1):
@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         # Publish random CAN messages with a 1-second interval
-        publish_random_can_message(bus, interval=1)
+        publish_random_can_message(bus, interval=10)
     except KeyboardInterrupt:
         print("Script terminated by user.")
     finally:
