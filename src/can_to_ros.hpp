@@ -4,24 +4,36 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/int32.hpp"
 #include <std_msgs/msg/float32.hpp>
-#include "/home/dragon/ros2_ws/install/can_msg/include/can_msg/can_msg/msg/frame.hpp"
-#include "log.h"
 
 class CanToRos : public rclcpp::Node {
 public:
   CanToRos();
 
 private:
-  void readCanFrame();
+  void readCanFrameOne();
+  void readCanFrameZero();
+  
+  template<typename T>
+  void translatetoCan(const T& msg, uint32_t can_id);
+  
+  
   void translateRosMsg(const struct can_frame& frame);
-  void CanPublisher(const can_msg::msg::Frame::SharedPtr msg);
-  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr publisher_int;
-  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr publisher_float;
+  
+  template<typename T>
+  void readRosTopics(const typename T::SharedPtr msg, const std::string& topic_name);
 
-  rclcpp::Subscription<can_msg::msg::Frame>::SharedPtr subscriber_;
   int socket_zero, socket_one;    
 
+
   std::unordered_map<uint32_t, std::pair<std::string, std::string>> can_id_mapping;
+  std::unordered_map<uint32_t, int> can_id_socket_mapping;
+
+  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr int_pub;
+  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr float_pub;
+  
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr throttle_subscriber;
+
+  
   std::stringstream topicname_receive;
   std::stringstream topicname_transmit;
   std::stringstream servername;

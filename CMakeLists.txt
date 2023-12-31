@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(can_to_ros)
+project(ros2_can_bridge)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -14,7 +14,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(can_msg REQUIRED)
 
 include_directories(include)
 
@@ -24,7 +23,7 @@ add_executable(live_converter src/can_to_ros.cpp)
 
 target_link_libraries(live_converter dl -lboost_system)
 
-ament_target_dependencies(live_converter rclcpp std_msgs can_msg)
+ament_target_dependencies(live_converter rclcpp std_msgs)
 
 install(TARGETS
   live_converter
