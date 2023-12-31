@@ -27,7 +27,7 @@ ament_target_dependencies(live_converter rclcpp std_msgs)
 
 install(TARGETS
   live_converter
-  DESTINATION ${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME})
 
 
 ament_package()
