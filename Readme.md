@@ -1,4 +1,4 @@
-**Title: ros2can_bridge**
+***ROS 2/CAN Bridge***
 
 **Description**
 
