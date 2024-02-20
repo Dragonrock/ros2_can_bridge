@@ -20,7 +20,7 @@ A ROS2 package enabling seamless communication between ROS 2 topics and a CAN bu
 1. Clone this repository into your ROS 2 workspace:
    ```bash
    cd <your_ros2_workspace>/src
-   git clone [https://github.com/](https://github.com/)<your_username>/ros2can_bridge
+   git clone https://github.com/Dragonrock/ros2can_bridge
 
 2. Build your workspace:
     ```bash
@@ -28,52 +28,42 @@ A ROS2 package enabling seamless communication between ROS 2 topics and a CAN bu
     cd <your_ros2_workspace>
     colcon build
 
-
 3. Source your workspace setup:
-  ```bash
-
+   ```bash
     source <your_ros2_workspace>/install/setup.bash
-```
-4. Usage
 
-    ```Launch the bridge:
-    Bash
+**Usage**
+   1. Launch the bridge:
+      ```bash
+      ros2 run ros2can_bridge can_to_ros_node
 
-    ros2 run ros2can_bridge can_to_ros_node
-
-    Use code with caution.
-
-    Customize Mappings (Optional):
+   2. Customize Mappings:
     The can_to_ros.hpp file contains mappings for translating between ROS 2 topics and CAN IDs. Edit this file to adjust mappings according to your requirements.
 
-4. Explanation of Key Code Sections
 
-    can_to_ros.hpp:
-        Contains the CAN-to-ROS conversion logic.
-        Includes SocketCAN headers for network access.
-        Defines the CanToRos class, which is the primary ROS2 node in this bridge.
+**Explanation of Key Code Sections**
 
-    Mapping Dictionaries:
-        can_id_mapping: Maps CAN IDs to ROS 2 topics and their corresponding message types.
-        can_id_socket_mapping: Maps CAN IDs to specific CAN sockets, allowing for management of multiple CAN interfaces.
+   * Mapping Dictionaries:
+        * can_id_mapping: Maps CAN IDs to ROS 2 topics and their corresponding message types.
+        * can_id_socket_mapping: Maps CAN IDs to specific CAN sockets, allowing for management of multiple CAN interfaces.
 
-    readCanFrameZero() and readCanFrameOne():
-        Functions that run in separate threads, each reading data from a dedicated CAN socket.
-        Incoming CAN frames are processed and translated to ROS 2 messages by the translateRosMsg function.
+   * readCanFrameZero( ) and readCanFrameOne():
+        * Functions that run in separate threads, each reading data from a dedicated CAN socket.
+        * Incoming CAN frames are processed and translated to ROS 2 messages by the translateRosMsg function.
 
-    translateRosMsg():
-        Translates CAN frames into their corresponding ROS 2 messages based on the can_id_mapping.
-        Publishes the translated messages onto the appropriate ROS 2 topics.
+   * translateRosMsg( ):
+        * Translates CAN frames into their corresponding ROS 2 messages based on the can_id_mapping.
+        * Publishes the translated messages onto the appropriate ROS 2 topics.
 
-    readRosTopics():
-        Subscribes to ROS 2 topics.
-        Calls the translatetoCan function to convert ROS 2 messages back into CAN frames.
+   * readRosTopics ( ):
+        * Subscribes to ROS 2 topics.
+        * Calls the translatetoCan function to convert ROS 2 messages back into CAN frames.
 
-    translatetoCan():
-        Converts ROS 2 messages into CAN frames using the can_id_mapping.
-        Sends the CAN frame on the appropriate socket based on the can_id_socket_mapping.
+   * translatetoCan( ):
+        * Converts ROS 2 messages into CAN frames using the can_id_mapping.
+        * Sends the CAN frame on the appropriate socket based on the can_id_socket_mapping.
 
 
-License
+*License*
 
 This project is licensed under the MIT License
